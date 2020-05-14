@@ -2,7 +2,10 @@ package com.up.share.jsbridgekotlin
 
 import android.content.Context
 import android.os.Build
+import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Log
+import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
 import android.webkit.WebView
 import com.google.gson.Gson
@@ -53,6 +56,8 @@ class BridgeWebview : WebView, WebViewClientCallback {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && BuildConfig.DEBUG) {
             setWebContentsDebuggingEnabled(true)
         }
+        settings.javaScriptEnabled = true
+
         val mClient = CustomWebviewClient(this)
 
        super.setWebViewClient(mClient)
@@ -83,4 +88,31 @@ class BridgeWebview : WebView, WebViewClientCallback {
         mGson= gson
      }
 
+    abstract class BaseJavascriptInterface( val mCallbacks: HashMap<String, BridgeCallback>) {
+
+        @JavascriptInterface
+        fun send(data: String, callbackId: String): String {
+            Log.d(
+                "chromium",
+                data + ", callbackId: " + callbackId + " " + Thread.currentThread().name
+            )
+            return send(data)
+        }
+
+        @JavascriptInterface
+        fun response(data: String, responseId: String) {
+            Log.d(
+                "chromium",
+                data + ", responseId: " + responseId + " " + Thread.currentThread().name
+            )
+            if (!TextUtils.isEmpty(responseId)) {
+                val function = mCallbacks.remove(responseId)
+                if (function != null) {
+                    function!!.callback(data)
+                }
+            }
+        }
+
+        abstract fun send(data: String): String
+    }
 }

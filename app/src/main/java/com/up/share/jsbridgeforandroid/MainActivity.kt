@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         bridgeWebview.setGson(Gson())
         bridgeWebview.loadUrl("file:///android_asset/demo.html")
+        bridgeWebview.addJavascriptInterface(MainJavascrotInterface(bridgeWebview.callbackids,bridgeWebview),"android")
         val sendData = SendData("测试", 12)
 
 
